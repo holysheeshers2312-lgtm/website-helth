@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit2, Save, Trash, Plus, MessageSquare, CheckCircle, ArrowUp, ArrowDown, X, Trash2 } from 'lucide-react';
+import { Edit2, Save, Trash, Plus, MessageSquare, CheckCircle, ArrowUp, ArrowDown, X, Trash2, Download } from 'lucide-react';
 import { io } from 'socket.io-client';
 import ThemeToggle from '../components/ThemeToggle';
 
@@ -1066,8 +1066,20 @@ export default function AdminDashboard() {
 
                 {/* Orders Tab */}
                 {activeTab === 'orders' && (
-                    <div className="grid gap-6">
+                    <div className="space-y-6">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-2xl font-bold text-foreground">All Orders</h2>
+                            <button
+                                onClick={() => {
+                                    window.open('/api/admin/orders/export', '_blank');
+                                }}
+                                className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-bold transition-colors"
+                            >
+                                <Download size={18} /> Download CSV
+                            </button>
+                        </div>
                         {orders.length === 0 && <p className="text-gray-500 text-center py-10">No orders found.</p>}
+                        <div className="grid gap-6">
                         {orders.map(order => (
                             <div key={order._id} className="bg-surface p-6 rounded-xl border border-gray-200 dark:border-white/5 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4">
@@ -1139,6 +1151,7 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
                         ))}
+                        </div>
                     </div>
                 )}
 

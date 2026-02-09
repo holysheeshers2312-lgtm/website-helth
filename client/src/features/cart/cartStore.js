@@ -13,13 +13,40 @@ export const useCartStore = create(
                     set({
                         items: items.map((item) =>
                             item.id === product.id
-                                ? { ...item, quantity: item.quantity + 1, price: product.price, selectedOption: product.selectedOption }
+                                ? { 
+                                    ...item, 
+                                    quantity: item.quantity + 1, 
+                                    price: product.price, 
+                                    selectedOption: product.selectedOption,
+                                    // Preserve cooking requests if provided and not empty, otherwise keep existing
+                                    cookingRequests: (product.cookingRequests && Object.values(product.cookingRequests).some(v => v)) 
+                                        ? product.cookingRequests 
+                                        : (item.cookingRequests || {}),
+                                    cookingInstructions: product.cookingInstructions || item.cookingInstructions || '',
+                                    noGarlic: product.noGarlic !== undefined ? product.noGarlic : (item.noGarlic || false),
+                                    noOnion: product.noOnion !== undefined ? product.noOnion : (item.noOnion || false),
+                                    customInstructions: product.customInstructions || item.customInstructions || ''
+                                }
                                 : item
                         ),
                     })
                 } else {
                     set({ items: [...items, { ...product, quantity: 1 }] })
                 }
+            },
+            updateItemCookingRequests: (productId, cookingRequests) => {
+                set({
+                    items: get().items.map((item) =>
+                        item.id === productId ? { ...item, cookingRequests } : item
+                    ),
+                })
+            },
+            updateItemCookingInstructions: (productId, cookingInstructions) => {
+                set({
+                    items: get().items.map((item) =>
+                        item.id === productId ? { ...item, cookingInstructions } : item
+                    ),
+                })
             },
             removeItem: (productId) => {
                 set({

@@ -355,11 +355,21 @@ app.post('/api/calculate-fee', (req, res) => {
     res.json({ fee, distance: '3.5 km' });
 });
 
-// Direct Order Creation (for COD or direct orders without payment gateway)
-app.post('/api/create-order-direct', authenticateToken, async (req, res) => {
+// Direct Order Creation (for direct orders without payment gateway - now supports guest orders)
+app.post('/api/create-order-direct', async (req, res) => {
     try {
         const { customer, items, totalAmount, paymentMethod } = req.body;
-        const userId = req.userId;
+        // Get userId from token if available, otherwise null for guest orders
+        let userId = null;
+        const token = req.headers.authorization?.split(' ')[1];
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, JWT_SECRET);
+                userId = decoded.userId;
+            } catch (e) {
+                // Invalid token, proceed as guest
+            }
+        }
 
         // Validate required fields
         if (!customer || !customer.name || !customer.phone || !customer.address) {
@@ -375,11 +385,12 @@ app.post('/api/create-order-direct', authenticateToken, async (req, res) => {
 
         // Create order directly
         const newOrder = new Order({
-            userId: userId,
+            userId: userId || undefined, // undefined for guest orders
             customer: customer,
             items: items,
             totalAmount: totalAmount,
             paymentId: paymentMethod === 'COD' ? 'COD_' + Date.now() : null,
+            paymentMethod: paymentMethod || 'UPI',
             orderId: orderId,
             status: 'received'
         });
@@ -419,11 +430,21 @@ app.post('/api/create-order', async (req, res) => {
     }
 });
 
-// Verify Payment & Save Order
-app.post('/api/verify-payment', authenticateToken, async (req, res) => {
+// Verify Payment & Save Order (now supports guest orders)
+app.post('/api/verify-payment', async (req, res) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderDetails } = req.body;
-        const userId = req.userId;
+        // Get userId from token if available, otherwise null for guest orders
+        let userId = null;
+        const token = req.headers.authorization?.split(' ')[1];
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, JWT_SECRET);
+                userId = decoded.userId;
+            } catch (e) {
+                // Invalid token, proceed as guest
+            }
+        }
 
         // Verify Signature
         const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -440,11 +461,12 @@ app.post('/api/verify-payment', authenticateToken, async (req, res) => {
 
             // Save Order to DB
             const newOrder = new Order({
-                userId: userId,
+                userId: userId || undefined, // undefined for guest orders
                 customer: orderDetails.customer,
                 items: orderDetails.items,
                 totalAmount: orderDetails.totalAmount,
                 paymentId: razorpay_payment_id,
+                paymentMethod: 'UPI',
                 orderId: orderId,
                 status: 'received'
             });
@@ -529,6 +551,59 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error("Fetch User Orders Error:", error);
         res.status(500).json({ error: "Failed to fetch orders" });
+    }
+});
+
+// Export Orders to CSV
+app.get('/api/admin/orders/export', async (req, res) => {
+    try {
+        const orders = await Order.find().populate('userId', 'name phone').sort({ createdAt: -1 });
+        
+        // CSV Headers
+        const headers = ['Order ID', 'Payment Type', 'Order Date', 'Items', 'Customer Name', 'Customer Address', 'Payment Total'];
+        
+        // Convert orders to CSV rows
+        const csvRows = orders.map(order => {
+            const orderId = order.orderId || order._id.toString().slice(-6);
+            const paymentType = order.paymentMethod || (order.paymentId?.startsWith('COD') ? 'COD' : 'UPI/Card');
+            const orderDate = new Date(order.createdAt).toLocaleString('en-IN');
+            const items = order.items.map(item => `${item.quantity}x ${item.name}`).join('; ');
+            const customerName = order.customer?.name || '';
+            const customerAddress = (order.customer?.address || '').replace(/,/g, ';'); // Replace commas to avoid CSV issues
+            const paymentTotal = `₹${order.totalAmount}`;
+            
+            return [
+                orderId,
+                paymentType,
+                orderDate,
+                items,
+                customerName,
+                customerAddress,
+                paymentTotal
+            ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(',');
+        });
+        
+        // Combine headers and rows
+        const csvContent = [
+            headers.map(h => `"${h}"`).join(','),
+            ...csvRows
+        ].join('\n');
+        
+        // Add BOM for Excel compatibility at the beginning
+        const csvWithBOM = '\ufeff' + csvContent;
+        
+        // Set response headers for CSV download
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="orders_${new Date().toISOString().split('T')[0]}.csv"`);
+        
+        // Send the complete CSV content
+        res.send(csvWithBOM);
+    } catch (error) {
+        console.error("CSV Export Error:", error);
+        // Only send error if headers haven't been sent yet
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Failed to export orders" });
+        }
     }
 });
 

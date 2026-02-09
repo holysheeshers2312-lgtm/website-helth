@@ -19,6 +19,37 @@ export default function MenuCard({ item }) {
     const defaultOption = hasOptions ? (priceOptions.find((o) => o.isDefault) || priceOptions[0]) : null;
 
     const [selectedOption, setSelectedOption] = useState(defaultOption);
+    // Hot item preferences
+    const [noGarlic, setNoGarlic] = useState(false);
+    const [noOnion, setNoOnion] = useState(false);
+    const [customInstructions, setCustomInstructions] = useState('');
+    const [showHotOptions, setShowHotOptions] = useState(false);
+    // Cooking requests for sweets
+    const [cookingRequests, setCookingRequests] = useState({
+        sugar: false,
+        jaggery: false,
+        dates: false
+    });
+    const [cookingInstructions, setCookingInstructions] = useState('');
+    const [showCookingRequests, setShowCookingRequests] = useState(false);
+    
+    const isSweetItem = item.category?.toLowerCase().includes('dessert') || 
+                       item.category?.toLowerCase().includes('sweet') ||
+                       item.name?.toLowerCase().includes('sweet') ||
+                       item.name?.toLowerCase().includes('gulab') ||
+                       item.name?.toLowerCase().includes('rasmalai') ||
+                       item.name?.toLowerCase().includes('jamun') ||
+                       item.name?.toLowerCase().includes('kheer') ||
+                       item.name?.toLowerCase().includes('halwa') ||
+                       item.name?.toLowerCase().includes('barfi') ||
+                       item.name?.toLowerCase().includes('laddu');
+    const isGiftPack = item.category?.toLowerCase().includes('gift') ||
+                      item.name?.toLowerCase().includes('gift pack') ||
+                      item.name?.toLowerCase().includes('giftpack') ||
+                      item.name?.toLowerCase().includes('gift box') ||
+                      item.name?.toLowerCase().includes('giftbox');
+    // Show customization for all items except sweets and gift packs
+    const showCustomization = !isSweetItem && !isGiftPack;
 
     useEffect(() => {
         if (hasOptions && defaultOption) setSelectedOption(defaultOption);
@@ -42,9 +73,24 @@ export default function MenuCard({ item }) {
     };
 
     const toAddWithOption = () => {
-        if (!hasOptions) return item;
+        const baseItem = {
+            ...item,
+            noGarlic: showCustomization ? noGarlic : false,
+            noOnion: showCustomization ? noOnion : false,
+            customInstructions: showCustomization ? customInstructions : '',
+            cookingRequests: isSweetItem ? cookingRequests : {},
+            cookingInstructions: isSweetItem ? cookingInstructions : ''
+        };
+        
+        if (!hasOptions) {
+            return baseItem;
+        }
         const opt = quantity > 0 ? (priceOptions.find((o) => o.label === cartItem?.selectedOption) || defaultOption) : currentOption;
-        return { ...item, price: opt.price, selectedOption: opt.label };
+        return {
+            ...baseItem,
+            price: opt.price,
+            selectedOption: opt.label
+        };
     };
 
     const handleCreate = (e) => {
@@ -144,6 +190,110 @@ export default function MenuCard({ item }) {
                 </div>
 
                 <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed flex-1">{item.description}</p>
+
+                {/* Customization options for all items except sweets and gift packs */}
+                {showCustomization && isAvailable && (
+                    <div className="mb-3 space-y-2">
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setShowHotOptions(!showHotOptions);
+                            }}
+                            className="text-xs text-primary hover:underline font-medium"
+                        >
+                            {showHotOptions ? 'Hide' : 'Show'} customization options
+                        </button>
+                        {showHotOptions && (
+                            <div className="bg-gray-50 dark:bg-black/30 p-3 rounded-lg border border-gray-200 dark:border-white/10 space-y-2" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex flex-wrap gap-3">
+                                    <label className="flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={noGarlic}
+                                            onChange={(e) => setNoGarlic(e.target.checked)}
+                                            className="w-4 h-4 text-primary rounded"
+                                        />
+                                        <span className="text-xs text-foreground">No Garlic</span>
+                                    </label>
+                                    <label className="flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={noOnion}
+                                            onChange={(e) => setNoOnion(e.target.checked)}
+                                            className="w-4 h-4 text-primary rounded"
+                                        />
+                                        <span className="text-xs text-foreground">No Onion</span>
+                                    </label>
+                                </div>
+                                <textarea
+                                    value={customInstructions}
+                                    onChange={(e) => setCustomInstructions(e.target.value)}
+                                    placeholder="Additional instructions (optional)"
+                                    className="w-full bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded px-2 py-1.5 text-xs text-foreground resize-none h-16"
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Cooking Requests for Sweets */}
+                {isSweetItem && isAvailable && (
+                    <div className="mb-3 space-y-2">
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setShowCookingRequests(!showCookingRequests);
+                            }}
+                            className="text-xs text-primary hover:underline font-medium"
+                        >
+                            {showCookingRequests ? 'Hide' : 'Show'} cooking requests
+                        </button>
+                        {showCookingRequests && (
+                            <div className="bg-gray-50 dark:bg-black/30 p-3 rounded-lg border border-gray-200 dark:border-white/10 space-y-2" onClick={(e) => e.stopPropagation()}>
+                                <p className="text-xs font-bold text-foreground mb-2">Sweetener Options:</p>
+                                <div className="flex flex-wrap gap-3 mb-2">
+                                    <label className="flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={cookingRequests.sugar}
+                                            onChange={(e) => setCookingRequests(prev => ({ ...prev, sugar: e.target.checked }))}
+                                            className="w-4 h-4 text-primary rounded"
+                                        />
+                                        <span className="text-xs text-foreground">Sugar</span>
+                                    </label>
+                                    <label className="flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={cookingRequests.jaggery}
+                                            onChange={(e) => setCookingRequests(prev => ({ ...prev, jaggery: e.target.checked }))}
+                                            className="w-4 h-4 text-primary rounded"
+                                        />
+                                        <span className="text-xs text-foreground">Jaggery</span>
+                                    </label>
+                                    <label className="flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={cookingRequests.dates}
+                                            onChange={(e) => setCookingRequests(prev => ({ ...prev, dates: e.target.checked }))}
+                                            className="w-4 h-4 text-primary rounded"
+                                        />
+                                        <span className="text-xs text-foreground">Dates</span>
+                                    </label>
+                                </div>
+                                <textarea
+                                    value={cookingInstructions}
+                                    onChange={(e) => setCookingInstructions(e.target.value)}
+                                    placeholder="Additional instructions (multilingual)"
+                                    className="w-full bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded px-2 py-1.5 text-xs text-foreground resize-none h-16"
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {hasOptions && isAvailable && (
                     <div className="mb-3" onClick={(e) => e.preventDefault()}>

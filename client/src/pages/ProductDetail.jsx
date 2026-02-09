@@ -13,6 +13,35 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState(null);
   const { items, addItem, removeItem, updateQuantity } = useCartStore();
+  // Hot item preferences
+  const [noGarlic, setNoGarlic] = useState(false);
+  const [noOnion, setNoOnion] = useState(false);
+  const [customInstructions, setCustomInstructions] = useState('');
+  // Cooking requests for sweets
+  const [cookingRequests, setCookingRequests] = useState({
+    sugar: false,
+    jaggery: false,
+    dates: false
+  });
+  const [cookingInstructions, setCookingInstructions] = useState('');
+  
+  const isSweetItem = item?.category?.toLowerCase().includes('dessert') || 
+                     item?.category?.toLowerCase().includes('sweet') ||
+                     item?.name?.toLowerCase().includes('sweet') ||
+                     item?.name?.toLowerCase().includes('gulab') ||
+                     item?.name?.toLowerCase().includes('rasmalai') ||
+                     item?.name?.toLowerCase().includes('jamun') ||
+                     item?.name?.toLowerCase().includes('kheer') ||
+                     item?.name?.toLowerCase().includes('halwa') ||
+                     item?.name?.toLowerCase().includes('barfi') ||
+                     item?.name?.toLowerCase().includes('laddu');
+  const isGiftPack = item?.category?.toLowerCase().includes('gift') ||
+                     item?.name?.toLowerCase().includes('gift pack') ||
+                     item?.name?.toLowerCase().includes('giftpack') ||
+                     item?.name?.toLowerCase().includes('gift box') ||
+                     item?.name?.toLowerCase().includes('giftbox');
+  // Show customization for all items except sweets and gift packs
+  const showCustomization = !isSweetItem && !isGiftPack;
 
   useEffect(() => {
     if (!id) return;
@@ -51,9 +80,29 @@ export default function ProductDetail() {
   } : null;
 
   const handleAdd = () => {
-    if (cartProduct) addItem(cartProduct);
+    if (cartProduct) {
+      const productWithPreferences = {
+        ...cartProduct,
+        noGarlic: showCustomization ? noGarlic : false,
+        noOnion: showCustomization ? noOnion : false,
+        customInstructions: showCustomization ? customInstructions : '',
+        cookingRequests: isSweetItem ? cookingRequests : {},
+        cookingInstructions: isSweetItem ? cookingInstructions : ''
+      };
+      addItem(productWithPreferences);
+    }
   };
-  const handleIncrement = () => addItem(cartProduct);
+  const handleIncrement = () => {
+    const productWithPreferences = {
+      ...cartProduct,
+      noGarlic: showCustomization ? noGarlic : false,
+      noOnion: showCustomization ? noOnion : false,
+      customInstructions: showCustomization ? customInstructions : '',
+      cookingRequests: isSweetItem ? cookingRequests : {},
+      cookingInstructions: isSweetItem ? cookingInstructions : ''
+    };
+    addItem(productWithPreferences);
+  };
   const handleDecrement = () => {
     if (quantity > 1) updateQuantity(item.id, quantity - 1);
     else removeItem(item.id);
@@ -132,6 +181,82 @@ export default function ProductDetail() {
             )}
 
             <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">{item.description}</p>
+
+            {/* Customization options for all items except sweets and gift packs */}
+            {showCustomization && (
+              <div className="space-y-3 bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-white/10">
+                <p className="text-sm font-bold text-gray-600 dark:text-gray-400 uppercase">Customization Options</p>
+                <div className="flex flex-wrap gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={noGarlic}
+                      onChange={(e) => setNoGarlic(e.target.checked)}
+                      className="w-5 h-5 text-primary rounded"
+                    />
+                    <span className="text-foreground font-medium">No Garlic</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={noOnion}
+                      onChange={(e) => setNoOnion(e.target.checked)}
+                      className="w-5 h-5 text-primary rounded"
+                    />
+                    <span className="text-foreground font-medium">No Onion</span>
+                  </label>
+                </div>
+                <textarea
+                  value={customInstructions}
+                  onChange={(e) => setCustomInstructions(e.target.value)}
+                  placeholder="Additional instructions (optional)"
+                  className="w-full bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-foreground resize-none h-20"
+                />
+              </div>
+            )}
+
+            {/* Cooking Requests for Sweets */}
+            {isSweetItem && (
+              <div className="space-y-3 bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-white/10">
+                <p className="text-sm font-bold text-gray-600 dark:text-gray-400 uppercase">Cooking Requests</p>
+                <div className="flex flex-wrap gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={cookingRequests.sugar}
+                      onChange={(e) => setCookingRequests(prev => ({ ...prev, sugar: e.target.checked }))}
+                      className="w-5 h-5 text-primary rounded"
+                    />
+                    <span className="text-foreground font-medium">Sugar</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={cookingRequests.jaggery}
+                      onChange={(e) => setCookingRequests(prev => ({ ...prev, jaggery: e.target.checked }))}
+                      className="w-5 h-5 text-primary rounded"
+                    />
+                    <span className="text-foreground font-medium">Jaggery</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={cookingRequests.dates}
+                      onChange={(e) => setCookingRequests(prev => ({ ...prev, dates: e.target.checked }))}
+                      className="w-5 h-5 text-primary rounded"
+                    />
+                    <span className="text-foreground font-medium">Dates</span>
+                  </label>
+                </div>
+                <textarea
+                  value={cookingInstructions}
+                  onChange={(e) => setCookingInstructions(e.target.value)}
+                  placeholder="Additional instructions (multilingual) - e.g., कम मीठा, Less sweet, etc."
+                  className="w-full bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-foreground resize-none h-20"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400">You can type in Hindi, English, Urdu, or any other language</p>
+              </div>
+            )}
 
             <div className="flex items-center gap-4">
               {quantity === 0 ? (

@@ -50,10 +50,7 @@ export default function Checkout() {
     };
 
     const handleNextStep = () => {
-        if (step === 1 && !isAuthenticated) {
-            navigate('/login?redirect=/checkout');
-            return;
-        }
+        // Allow guest checkout - no authentication required
         if (step === 2) {
             if (!validateForm()) return;
         }
@@ -62,12 +59,6 @@ export default function Checkout() {
 
     // Handle payment based on payment method
     const handlePayment = async () => {
-        // Double check authentication
-        if (!isAuthenticated || !token) {
-            navigate('/login?redirect=/checkout');
-            return;
-        }
-
         if (!validateForm()) return;
 
         if (!paymentMethod) {
@@ -78,33 +69,8 @@ export default function Checkout() {
         setLoading(true);
 
         try {
-            // For COD, create order directly without payment gateway
-            if (paymentMethod === 'COD' || paymentMethod === 'cod') {
-                const orderRes = await fetch('/api/create-order-direct', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        customer: form,
-                        items: items,
-                        totalAmount: grandTotal,
-                        paymentMethod: 'COD'
-                    })
-                });
-
-                const orderData = await orderRes.json();
-
-                if (orderData.success) {
-                    clearCart();
-                    navigate(`/track-order?orderId=${orderData.orderId}`);
-                } else {
-                    alert("Failed to create order: " + (orderData.message || "Unknown error"));
-                    setLoading(false);
-                }
-                return;
-            }
+            // Items already have preferences from cart, use them directly
+            const itemsWithPreferences = items;
 
             // For UPI/Card, use Razorpay flow
             const orderRes = await fetch('/api/create-order', {
@@ -116,19 +82,24 @@ export default function Checkout() {
 
             // Simulate Verification (in production, this would be handled by Razorpay callback)
             setTimeout(async () => {
+                const headers = { 
+                    'Content-Type': 'application/json'
+                };
+                // Add auth header only if user is authenticated
+                if (isAuthenticated && token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
                 const verifyRes = await fetch('/api/verify-payment', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: headers,
                     body: JSON.stringify({
                         razorpay_order_id: orderData.id || "mock_order_id",
                         razorpay_payment_id: "mock_payment_id_" + Date.now(),
                         razorpay_signature: "mock_signature",
                         orderDetails: {
                             customer: form,
-                            items: items,
+                            items: itemsWithPreferences,
                             totalAmount: grandTotal
                         }
                     })
@@ -152,16 +123,6 @@ export default function Checkout() {
         }
     };
 
-    // Redirect to login if not authenticated when trying to proceed past cart step
-    useEffect(() => {
-        if (step > 1 && !isAuthenticated) {
-            if (token) {
-                verifyToken();
-            } else {
-                navigate('/login?redirect=/checkout');
-            }
-        }
-    }, [step, isAuthenticated, token, verifyToken, navigate]);
 
     if (items.length === 0) {
         return (
@@ -205,8 +166,8 @@ export default function Checkout() {
                 </div>
 
                 {!isAuthenticated && step >= 2 && (
-                    <div className="bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 px-4 py-3 rounded-lg mb-6 text-sm">
-                        ⚠️ You must be logged in to place an order. <button onClick={() => navigate('/login?redirect=/checkout')} className="underline font-bold hover:text-yellow-300">Login here</button>
+                    <div className="bg-blue-500/20 border border-blue-500/50 text-blue-400 px-4 py-3 rounded-lg mb-6 text-sm">
+                        ℹ️ You're checking out as a guest. <button onClick={() => navigate('/login?redirect=/checkout')} className="underline font-bold hover:text-blue-300">Login</button> to save your order history.
                     </div>
                 )}
 
@@ -226,20 +187,53 @@ export default function Checkout() {
                                         <h2 className="text-xl font-bold mb-6">Your Items</h2>
                                         <div className="space-y-6">
                                             {items.map((item) => (
-                                                <div key={item.id} className="flex gap-4 items-center">
-                                                    <img src={item.image} alt={item.name} className="w-20 h-20 rounded-lg object-cover" />
-                                                    <div className="flex-1">
-                                                        <h3 className="font-bold text-foreground">{item.name}</h3>
-                                                        <p className="text-primary text-sm font-bold">₹{item.price}</p>
+                                                <div key={item.id} className="space-y-3">
+                                                    <div className="flex gap-4 items-center">
+                                                        <img src={item.image} alt={item.name} className="w-20 h-20 rounded-lg object-cover" />
+                                                        <div className="flex-1">
+                                                            <h3 className="font-bold text-foreground">{item.name}</h3>
+                                                            <p className="text-primary text-sm font-bold">₹{item.price}</p>
+                                                        </div>
+                                                        <div className="flex items-center gap-3 bg-background/50 rounded-lg p-1">
+                                                            <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-8 h-8 flex items-center justify-center hover:text-primary transition-colors">-</button>
+                                                            <span className="font-bold w-4 text-center text-foreground">{item.quantity}</span>
+                                                            <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-8 h-8 flex items-center justify-center hover:text-primary transition-colors">+</button>
+                                                        </div>
+                                                        <button onClick={() => removeItem(item.id)} className="p-2 text-gray-500 hover:text-red-500 transition-colors">
+                                                            <Trash2 size={20} />
+                                                        </button>
                                                     </div>
-                                                    <div className="flex items-center gap-3 bg-background/50 rounded-lg p-1">
-                                                        <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-8 h-8 flex items-center justify-center hover:text-primary transition-colors">-</button>
-                                                        <span className="font-bold w-4 text-center text-foreground">{item.quantity}</span>
-                                                        <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-8 h-8 flex items-center justify-center hover:text-primary transition-colors">+</button>
-                                                    </div>
-                                                    <button onClick={() => removeItem(item.id)} className="p-2 text-gray-500 hover:text-red-500 transition-colors">
-                                                        <Trash2 size={20} />
-                                                    </button>
+                                                    {/* Display item preferences if set */}
+                                                    {((item.noGarlic || item.noOnion || item.customInstructions) || 
+                                                      (item.cookingRequests && Object.values(item.cookingRequests).some(v => v)) || 
+                                                      item.cookingInstructions) && (
+                                                        <div className="ml-24 space-y-2 bg-gray-50 dark:bg-black/20 p-3 rounded-lg border border-gray-200 dark:border-white/10">
+                                                            <p className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Item Preferences</p>
+                                                            
+                                                            {/* Customization preferences (for all items except sweets and gift packs) */}
+                                                            {(item.noGarlic || item.noOnion || item.customInstructions) && (
+                                                                <div className="space-y-1">
+                                                                    {item.noGarlic && <p className="text-xs text-foreground">✓ No Garlic</p>}
+                                                                    {item.noOnion && <p className="text-xs text-foreground">✓ No Onion</p>}
+                                                                    {item.customInstructions && <p className="text-xs text-foreground italic">{item.customInstructions}</p>}
+                                                                </div>
+                                                            )}
+                                                            
+                                                            {/* Cooking requests for sweets */}
+                                                            {item.cookingRequests && Object.values(item.cookingRequests).some(v => v) && (
+                                                                <div className="space-y-1">
+                                                                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">Sweetener:</p>
+                                                                    {item.cookingRequests.sugar && <p className="text-xs text-foreground">✓ Sugar</p>}
+                                                                    {item.cookingRequests.jaggery && <p className="text-xs text-foreground">✓ Jaggery</p>}
+                                                                    {item.cookingRequests.dates && <p className="text-xs text-foreground">✓ Dates</p>}
+                                                                </div>
+                                                            )}
+                                                            
+                                                            {item.cookingInstructions && (
+                                                                <p className="text-xs text-foreground italic mt-1">{item.cookingInstructions}</p>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>
@@ -253,7 +247,7 @@ export default function Checkout() {
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: 20 }}
-                                    className="bg-surface border border-white/5 rounded-2xl p-6"
+                                    className="bg-surface border border-white/5 rounded-2xl p-6 space-y-6"
                                 >
                                     <h2 className="text-xl font-bold mb-6">Delivery Details</h2>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -314,8 +308,8 @@ export default function Checkout() {
                                     className="bg-surface border border-white/5 rounded-2xl p-6"
                                 >
                                     <h2 className="text-xl font-bold mb-6">Payment Method</h2>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                                        {['UPI', 'Card', 'COD'].map((method) => (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                                        {['UPI', 'Card'].map((method) => (
                                             <button
                                                 key={method}
                                                 onClick={() => setPaymentMethod(method)}
@@ -328,7 +322,6 @@ export default function Checkout() {
                                             >
                                                 {method === 'UPI' && <Smartphone size={32} />}
                                                 {method === 'Card' && <CreditCard size={32} />}
-                                                {method === 'COD' && <Wallet size={32} />}
                                                 <span className="font-bold">{method}</span>
                                             </button>
                                         ))}
@@ -349,11 +342,6 @@ export default function Checkout() {
                                                 <input type="text" placeholder="MM/YY" className="w-full bg-white dark:bg-surface border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-foreground" />
                                                 <input type="password" placeholder="CVV" className="w-full bg-white dark:bg-surface border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-foreground" />
                                             </div>
-                                        </div>
-                                    )}
-                                    {paymentMethod === 'COD' && (
-                                        <div className="mt-8 p-6 bg-gray-50 dark:bg-background rounded-xl border border-gray-200 dark:border-white/5 text-center text-gray-500 dark:text-gray-400">
-                                            Please keep exact change ready at delivery.
                                         </div>
                                     )}
                                 </motion.div>
@@ -382,7 +370,7 @@ export default function Checkout() {
                                     disabled={loading || !paymentMethod}
                                     className="ml-auto bg-green-500 text-white px-8 py-3 rounded-full font-bold hover:bg-green-600 transition-colors flex items-center gap-2 disabled:opacity-50"
                                 >
-                                    {loading ? 'Processing...' : paymentMethod === 'COD' ? `Place Order ₹${grandTotal}` : `Pay ₹${grandTotal}`}
+                                    {loading ? 'Processing...' : `Pay ₹${grandTotal}`}
                                 </button>
                             )}
                         </div>
