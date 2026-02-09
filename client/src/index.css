@@ -4,21 +4,40 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme variables - matches Healthy bowl reference HTML */
+:root {
+  --color-primary: 234, 88, 12;
+  --color-secondary: 255, 255, 255;
+  --color-accent: 251, 191, 36;
+  --color-background: 250, 250, 249;
+  --color-surface: 255, 255, 255;
+  --color-glass: 0, 0, 0;
+  --color-text: 28, 25, 23;
+}
+
+.dark {
+  --color-primary: 255, 69, 0;
+  --color-secondary: 15, 23, 42;
+  --color-accent: 251, 191, 36;
+  --color-background: 5, 5, 5;
+  --color-surface: 18, 18, 18;
+  --color-glass: 255, 255, 255;
+  --color-text: 255, 255, 255;
+}
+
 @layer base {
   body {
-    @apply bg-background text-white font-sans antialiased overflow-x-hidden;
+    @apply font-sans antialiased overflow-x-hidden;
+    background-color: rgba(var(--color-background), 1);
+    color: rgba(var(--color-text), 1);
     background-image:
-      radial-gradient(circle at 15% 50%, rgba(255, 69, 0, 0.08), transparent 25%),
-      radial-gradient(circle at 85% 30%, rgba(251, 191, 36, 0.05), transparent 25%);
+      radial-gradient(circle at 15% 50%, rgba(var(--color-primary), 0.05), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(var(--color-accent), 0.05), transparent 25%);
     background-attachment: fixed;
+    transition: color 0.3s, background-color 0.3s, border-color 0.3s;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h1, h2, h3, h4, h5, h6 {
     @apply font-serif;
   }
 }
@@ -38,15 +57,15 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #050505;
+  background: rgba(var(--color-background), 1);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: rgba(var(--color-surface), 1);
   border-radius: 5px;
-  border: 2px solid #050505;
+  border: 2px solid rgba(var(--color-background), 1);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #FF4500;
+  background: rgba(var(--color-primary), 1);
 }

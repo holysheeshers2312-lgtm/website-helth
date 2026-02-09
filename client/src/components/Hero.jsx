@@ -8,13 +8,16 @@ export default function Hero() {
             {/* Background with overlay */}
             <div className="absolute inset-0 z-0">
                 <img
-                    src="hero_bg.png"
-                    alt="Modern Indian Cuisine"
-                    className="w-full h-full object-cover scale-110 animate-slow-spin opacity-80"
-                    style={{ animationDuration: '60s' }} // Very slow rotation/zoom effect simulated
+                    src="/hero-banana-leaf.png"
+                    alt="Traditional banana leaf feast"
+                    className="w-full h-full object-cover scale-100"
+                    style={{
+                        objectPosition: 'center top', // show more of the leaf surface
+                        animationDuration: '60s',
+                    }} // subtle zoom effect if animated in future
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-                <div className="absolute inset-0 bg-black/40 mix-blend-multiply" />
+                {/* Darken only the bottom so text pops but image stays vibrant */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
             </div>
 
             {/* Content */}
@@ -31,18 +34,18 @@ export default function Hero() {
                         className="inline-block px-6 py-2 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-md mb-6"
                     >
                         <span className="text-primary tracking-widest text-sm font-bold uppercase drop-shadow-[0_0_10px_rgba(255,69,0,0.5)]">
-                            Taste the Fire
+                            Nourish Your Body
                         </span>
                     </motion.div>
 
                     <h1 className="text-6xl md:text-8xl font-serif font-black text-white mb-6 leading-tight drop-shadow-2xl">
-                        Modern India <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 animate-pulse">On A Plate</span>
+                        Healthy Bowl <br />
+                        <span className="text-[color:#f59e0b]">Fresh &amp; Nutritious</span>
                     </h1>
 
                     <p className="text-gray-300 text-lg md:text-2xl max-w-3xl mx-auto mb-12 font-light leading-relaxed">
-                        Where <span className="text-accent font-medium">tradition</span> meets <span className="text-primary font-medium">rebellion</span>.
-                        Experience flavors that explode and aesthetics that mesmerize.
+                        Where <span className="text-accent font-medium">fresh ingredients</span> meet <span className="text-primary font-medium">flavor</span>.
+                        Wholesome meals crafted for your wellbeing.
                     </p>
 
                     <div className="flex flex-col md:flex-row gap-6 justify-center items-center">

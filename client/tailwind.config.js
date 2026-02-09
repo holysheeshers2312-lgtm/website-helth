@@ -4,15 +4,17 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        primary: "#FF4500", // Fiery Orange
-        secondary: "#0f172a", // Slate 900
-        accent: "#FBBF24", // Amber
-        background: "#050505", // Almost Black
-        surface: "#121212", // Dark Gray
-        'glass': 'rgba(255, 255, 255, 0.05)',
+        primary: "rgba(var(--color-primary), 1)",
+        secondary: "rgba(var(--color-secondary), 1)",
+        accent: "rgba(var(--color-accent), 1)",
+        background: "rgba(var(--color-background), 1)",
+        surface: "rgba(var(--color-surface), 1)",
+        foreground: "rgba(var(--color-text), 1)",
+        'glass': 'rgba(var(--color-glass), 0.05)',
       },
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
@@ -34,8 +36,8 @@ export default {
         },
       },
       backgroundImage: {
-        'gradient-fire': 'linear-gradient(to right, #FF4500, #FBBF24)',
-        'gradient-dark': 'linear-gradient(to bottom, #050505, #121212)',
+        'gradient-fire': 'linear-gradient(to right, rgb(var(--color-primary)), rgb(var(--color-accent)))',
+        'gradient-dark': 'linear-gradient(to bottom, rgb(var(--color-background)), rgb(var(--color-surface)))',
       }
     },
   },

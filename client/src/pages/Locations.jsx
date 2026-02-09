@@ -8,7 +8,7 @@ export default function Locations() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Map Placeholder */}
-                    <div className="bg-surface rounded-2xl overflow-hidden border border-white/5 h-[400px] relative group">
+                    <div className="bg-surface rounded-2xl overflow-hidden border border-gray-200 dark:border-white/5 h-[400px] relative group">
                         {/* If we had an API key, Google Maps would go here. Using an iframe for now. */}
                         <iframe
                             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d124412.7231464972!2d77.51656885!3d12.979693!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae1670c9b44e6d%3A0xf8dfc3e8517e4fe0!2sBengaluru%2C%20Karnataka!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
@@ -23,7 +23,7 @@ export default function Locations() {
                     </div>
 
                     <div className="space-y-6">
-                        <div className="bg-surface p-6 rounded-2xl border border-white/5 hover:border-primary/50 transition-colors">
+                        <div className="bg-surface p-6 rounded-2xl border border-gray-200 dark:border-white/5 hover:border-primary/50 transition-colors">
                             <h2 className="text-2xl font-serif font-bold mb-2">Indiranagar Flagship</h2>
                             <div className="space-y-3 text-gray-400">
                                 <p className="flex items-center gap-2"><MapPin size={18} className="text-primary" /> 12th Main Rd, Indiranagar, Bengaluru</p>
@@ -32,7 +32,7 @@ export default function Locations() {
                             </div>
                         </div>
 
-                        <div className="bg-surface p-6 rounded-2xl border border-white/5 hover:border-primary/50 transition-colors">
+                        <div className="bg-surface p-6 rounded-2xl border border-gray-200 dark:border-white/5 hover:border-primary/50 transition-colors">
                             <h2 className="text-2xl font-serif font-bold mb-2">Koramangala Branch</h2>
                             <div className="space-y-3 text-gray-400">
                                 <p className="flex items-center gap-2"><MapPin size={18} className="text-primary" /> 5th Block, Koramangala, Bengaluru</p>

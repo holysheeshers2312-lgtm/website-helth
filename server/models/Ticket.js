@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const ticketSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     orderId: { type: String, required: false }, // Optional
     email: { type: String },
     category: {
@@ -9,6 +10,7 @@ const ticketSchema = new mongoose.Schema({
         enum: ['Late Delivery', 'Missing Item', 'Quality Issue', 'Other']
     },
     details: { type: String },
+    adminReply: { type: String },
     status: {
         type: String,
         enum: ['Open', 'Resolved'],

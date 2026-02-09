@@ -1,27 +1,65 @@
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Plus, Minus, ShoppingBag, XCircle } from 'lucide-react';
 import { useCartStore } from '../cart/cartStore';
 import { cn } from '../../lib/utils';
 import { MENU_IMAGE_OVERRIDES } from './imageOverrides';
 
 export default function MenuCard({ item }) {
-    const { items, addItem, removeItem, updateQuantity } = useCartStore();
+    const { items, addItem, removeItem, updateQuantity, updateItemOption } = useCartStore();
 
     const cartItem = items.find((i) => i.id === item.id);
     const quantity = cartItem ? cartItem.quantity : 0;
     const isAvailable = item.isAvailable !== false; // Default to true if not specified
 
+    const priceOptions = item.priceOptions || [];
+    const hasOptions = priceOptions.length > 0;
+    const minPrice = hasOptions ? Math.min(...priceOptions.map((o) => o.price)) : item.price;
+    const defaultOption = hasOptions ? (priceOptions.find((o) => o.isDefault) || priceOptions[0]) : null;
+
+    const [selectedOption, setSelectedOption] = useState(defaultOption);
+
+    useEffect(() => {
+        if (hasOptions && defaultOption) setSelectedOption(defaultOption);
+    }, [item.id, hasOptions]);
+
+    const currentOption = quantity > 0 && cartItem?.selectedOption
+        ? priceOptions.find((o) => o.label === cartItem.selectedOption) || defaultOption
+        : selectedOption;
+
+    const handleOptionChange = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const label = e.target.value;
+        const opt = priceOptions.find((o) => o.label === label);
+        if (!opt) return;
+        if (quantity > 0) {
+            updateItemOption(item.id, opt.label, opt.price);
+        } else {
+            setSelectedOption(opt);
+        }
+    };
+
+    const toAddWithOption = () => {
+        if (!hasOptions) return item;
+        const opt = quantity > 0 ? (priceOptions.find((o) => o.label === cartItem?.selectedOption) || defaultOption) : currentOption;
+        return { ...item, price: opt.price, selectedOption: opt.label };
+    };
+
     const handleCreate = (e) => {
+        e.preventDefault();
         e.stopPropagation();
         if (isAvailable) {
-            addItem(item);
+            addItem(toAddWithOption());
         }
     };
 
     const increment = (e) => {
+        e.preventDefault();
         e.stopPropagation();
         if (isAvailable) {
-            addItem(item);
+            addItem(toAddWithOption());
         }
     };
 
@@ -40,13 +78,13 @@ export default function MenuCard({ item }) {
         <motion.div
             layout
             className={cn(
-                "rounded-3xl overflow-hidden group relative transition-all duration-500",
+                "rounded-3xl overflow-hidden group relative transition-all duration-500 flex flex-col h-full",
                 quantity > 0
-                    ? "bg-surface shadow-[0_10px_40px_-10px_rgba(255,69,0,0.3)] ring-1 ring-primary transform -translate-y-2 scale-[1.02]"
-                    : "bg-white/5 border border-white/5 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2"
+                    ? "bg-white dark:bg-surface shadow-[0_10px_40px_-10px_rgba(255,69,0,0.3)] ring-1 ring-primary transform -translate-y-2 scale-[1.02] border border-gray-100 dark:border-white/5"
+                    : "bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 hover:shadow-xl hover:-translate-y-1 dark:hover:border-primary/30 dark:hover:shadow-primary/10"
             )}
         >
-            <div className="relative h-64 overflow-hidden">
+            <Link to={`/menu/product/${item.id}`} className="block relative h-64 overflow-hidden">
                 <img
                     src={imageSrc}
                     alt={item.name}
@@ -55,7 +93,7 @@ export default function MenuCard({ item }) {
                         quantity > 0 ? "scale-110 saturate-150" : "group-hover:scale-110 group-hover:saturate-150"
                     )}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent dark:from-black/40 dark:via-background/20" />
 
                 <div className="absolute top-4 right-4 z-10">
                     <AnimatePresence>
@@ -74,11 +112,11 @@ export default function MenuCard({ item }) {
 
                 <div className="absolute bottom-4 left-4 z-10 flex gap-2">
                     {item.isVegetarian !== false ? (
-                        <span className="bg-green-500/80 backdrop-blur-xl border border-green-400/50 text-white text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full">
+                        <span className="bg-white/90 dark:bg-green-900/80 backdrop-blur-sm text-green-700 dark:text-green-400 text-[10px] uppercase font-bold px-2 py-0.5 rounded shadow-sm border border-green-200 dark:border-green-800">
                             Veg
                         </span>
                     ) : (
-                        <span className="bg-red-500/80 backdrop-blur-xl border border-red-400/50 text-white text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full">
+                        <span className="bg-white/90 dark:bg-red-900/80 backdrop-blur-sm text-red-700 dark:text-red-400 text-[10px] uppercase font-bold px-2 py-0.5 rounded shadow-sm border border-red-200 dark:border-red-800">
                             Non-Veg
                         </span>
                     )}
@@ -90,22 +128,46 @@ export default function MenuCard({ item }) {
                         </div>
                     </div>
                 )}
-            </div>
+            </Link>
 
-            <div className="p-6 flex flex-col relative">
+            <div className="p-5 flex flex-col flex-1 relative">
                 <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-2xl font-black font-serif text-white leading-none group-hover:text-primary transition-colors duration-300">{item.name}</h3>
+                    <Link to={`/menu/product/${item.id}`} className="text-lg font-bold font-serif text-gray-900 dark:text-white leading-tight group-hover:text-primary transition-colors hover:underline decoration-primary/30 underline-offset-4">{item.name}</Link>
                 </div>
 
                 <div className="flex items-center gap-2 mb-4">
-                    <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">₹{item.price}</span>
+                    <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
+                        {hasOptions ? `₹${minPrice} onwards` : `₹${item.price}`}
+                    </span>
                     {item.price > 400 && <span className="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded font-bold">BESTSELLER</span>}
                     {!isAvailable && <span className="bg-red-500/20 text-red-400 text-[10px] px-2 py-0.5 rounded font-bold">OUT OF STOCK</span>}
                 </div>
 
-                <p className="text-gray-400 text-sm mb-6 line-clamp-2 leading-relaxed">{item.description}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed flex-1">{item.description}</p>
 
-                <div className="mt-auto relative z-20">
+                {hasOptions && isAvailable && (
+                    <div className="mb-3" onClick={(e) => e.preventDefault()}>
+                        <label className="sr-only">Quantity / size</label>
+                        <select
+                            value={currentOption?.label ?? ''}
+                            onChange={handleOptionChange}
+                            onClick={(e) => e.stopPropagation()}
+                            className={cn(
+                                "w-full py-2.5 pl-3 pr-8 rounded-lg text-sm font-medium border bg-white dark:bg-black/30 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none appearance-none cursor-pointer",
+                                quantity > 0 && "border-primary/50 bg-primary/5 dark:bg-primary/10"
+                            )}
+                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1.25rem' }}
+                        >
+                            {priceOptions.map((opt) => (
+                                <option key={opt.label} value={opt.label}>
+                                    {opt.label} — ₹{opt.price}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+
+                <div className="mt-auto pt-4 border-t border-gray-100 dark:border-white/5 relative z-20">
                     <AnimatePresence mode='wait'>
                         {!isAvailable ? (
                             <motion.button
@@ -121,24 +183,20 @@ export default function MenuCard({ item }) {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={handleCreate}
-                                className="w-full py-4 rounded-xl font-bold text-white relative overflow-hidden group/btn"
+                                className="w-full py-3 rounded-xl font-bold text-white bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 text-sm"
                             >
-                                <div className="absolute inset-0 bg-white/10 group-hover/btn:bg-primary transition-colors duration-300" />
-                                <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-100 bg-gradient-to-r from-primary to-accent transition-opacity duration-300" />
-                                <span className="relative flex items-center justify-center gap-2">
-                                    <Plus size={20} /> Add to Cart
-                                </span>
+                                <Plus size={18} /> Add to Cart
                             </motion.button>
                         ) : (
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0 }}
-                                className="flex items-center justify-between bg-black/40 backdrop-blur-md border border-primary/50 rounded-xl p-1.5"
+                                className="flex items-center justify-between bg-gray-100 dark:bg-black/40 backdrop-blur-md border border-primary/50 rounded-xl p-1.5"
                             >
                                 <button
                                     onClick={decrement}
-                                    className="w-10 h-10 flex items-center justify-center rounded-lg text-white hover:bg-white/10 transition-colors active:scale-90"
+                                    className="w-10 h-10 flex items-center justify-center rounded-lg text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-white/10 transition-colors active:scale-90"
                                 >
                                     <Minus size={20} />
                                 </button>

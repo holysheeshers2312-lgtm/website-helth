@@ -15,7 +15,7 @@ export default function Layout({ children }) {
     }, [pathname]);
 
     return (
-        <div className="min-h-screen bg-background text-white flex flex-col">
+        <div className="min-h-screen bg-background text-gray-900 dark:text-white flex flex-col">
             {!isAdminRoute && <Navbar />}
             <main className={`flex-grow ${!isAdminRoute ? 'pt-20' : ''}`}>
                 {children}

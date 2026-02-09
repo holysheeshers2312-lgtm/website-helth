@@ -13,7 +13,7 @@ export const useCartStore = create(
                     set({
                         items: items.map((item) =>
                             item.id === product.id
-                                ? { ...item, quantity: item.quantity + 1 }
+                                ? { ...item, quantity: item.quantity + 1, price: product.price, selectedOption: product.selectedOption }
                                 : item
                         ),
                     })
@@ -34,6 +34,13 @@ export const useCartStore = create(
                 set({
                     items: get().items.map((item) =>
                         item.id === productId ? { ...item, quantity } : item
+                    ),
+                })
+            },
+            updateItemOption: (productId, selectedOption, price) => {
+                set({
+                    items: get().items.map((item) =>
+                        item.id === productId ? { ...item, selectedOption, price } : item
                     ),
                 })
             },

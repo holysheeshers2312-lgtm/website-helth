@@ -29,12 +29,12 @@ export default function MobileNav() {
     ];
 
     return (
-        <div className="md:hidden fixed bottom-4 left-4 right-4 bg-black/80 backdrop-blur-lg border border-white/10 rounded-2xl shadow-2xl z-50 flex justify-between px-6 py-4">
+        <div className="md:hidden fixed bottom-4 left-4 right-4 bg-white/95 dark:bg-black/80 backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl z-50 flex justify-between px-6 py-4">
             {navItems.map((item) => (
                 <Link
                     key={item.label}
                     to={item.path}
-                    className={`flex flex-col items-center gap-1 transition-colors ${location.pathname === item.path ? 'text-primary' : 'text-gray-400 hover:text-white'
+                    className={`flex flex-col items-center gap-1 transition-colors ${location.pathname === item.path ? 'text-primary' : 'text-gray-500 dark:text-gray-400 hover:text-foreground'
                         }`}
                 >
                     {item.icon}

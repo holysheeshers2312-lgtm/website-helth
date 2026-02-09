@@ -260,6 +260,16 @@ app.get('/api/menu', async (req, res) => {
     }
 });
 
+app.get('/api/menu/:id', async (req, res) => {
+    try {
+        const item = await Menu.findOne({ id: req.params.id });
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+        res.json(item);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch item' });
+    }
+});
+
 app.post('/api/menu', async (req, res) => {
     try {
         const newItem = new Menu(req.body);
@@ -309,6 +319,15 @@ app.post('/api/tickets', async (req, res) => {
 app.get('/api/tickets', async (req, res) => {
     try {
         const tickets = await Ticket.find().sort({ createdAt: -1 });
+        res.json(tickets);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch tickets' });
+    }
+});
+
+app.get('/api/user/tickets', authenticateToken, async (req, res) => {
+    try {
+        const tickets = await Ticket.find({ userId: req.userId }).sort({ createdAt: -1 });
         res.json(tickets);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch tickets' });

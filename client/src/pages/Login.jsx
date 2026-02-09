@@ -62,16 +62,16 @@ export default function Login() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-surface border border-white/5 rounded-2xl p-8 w-full max-w-md shadow-2xl"
+                className="bg-surface border border-gray-200 dark:border-white/5 rounded-2xl p-8 w-full max-w-md shadow-2xl"
             >
                 <div className="text-center mb-8">
                     <div className="mx-auto w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4 text-primary">
                         <LogIn size={32} />
                     </div>
-                    <h2 className="text-3xl font-serif font-bold text-white mb-2">
+                    <h2 className="text-3xl font-serif font-bold text-foreground mb-2">
                         {isLogin ? 'Welcome Back' : 'Create Account'}
                     </h2>
-                    <p className="text-gray-400">
+                    <p className="text-gray-500 dark:text-gray-400">
                         {isLogin ? 'Sign in to continue ordering' : 'Sign up to start ordering'}
                     </p>
                 </div>
@@ -79,15 +79,15 @@ export default function Login() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {!isLogin && (
                         <div>
-                            <label className="text-sm text-gray-400 mb-1 block">Full Name</label>
-                            <div className="bg-black/40 border border-white/10 rounded-lg px-4 py-3 flex items-center gap-3">
-                                <User className="text-gray-400" size={20} />
+                            <label className="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Full Name</label>
+                            <div className="bg-gray-100 dark:bg-black/40 border border-gray-300 dark:border-white/10 rounded-lg px-4 py-3 flex items-center gap-3">
+                                <User className="text-gray-500 dark:text-gray-400" size={20} />
                                 <input
                                     type="text"
                                     placeholder="John Doe"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="bg-transparent w-full text-white outline-none"
+                                    className="bg-transparent w-full text-foreground outline-none"
                                     required={!isLogin}
                                 />
                             </div>
@@ -95,15 +95,15 @@ export default function Login() {
                     )}
 
                     <div>
-                        <label className="text-sm text-gray-400 mb-1 block">Phone Number</label>
-                        <div className="bg-black/40 border border-white/10 rounded-lg px-4 py-3 flex items-center gap-3">
-                            <Phone className="text-gray-400" size={20} />
+                        <label className="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Phone Number</label>
+                        <div className="bg-gray-100 dark:bg-black/40 border border-gray-300 dark:border-white/10 rounded-lg px-4 py-3 flex items-center gap-3">
+                            <Phone className="text-gray-500 dark:text-gray-400" size={20} />
                             <input
                                 type="tel"
                                 placeholder="+91 98765 43210"
                                 value={formData.phone}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                className="bg-transparent w-full text-white outline-none"
+                                className="bg-transparent w-full text-foreground outline-none"
                                 required
                             />
                         </div>
@@ -112,27 +112,27 @@ export default function Login() {
                     {!isLogin && (
                         <>
                             <div>
-                                <label className="text-sm text-gray-400 mb-1 block">Email (Optional)</label>
-                                <div className="bg-black/40 border border-white/10 rounded-lg px-4 py-3 flex items-center gap-3">
-                                    <User className="text-gray-400" size={20} />
+                                <label className="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Email (Optional)</label>
+                                <div className="bg-gray-100 dark:bg-black/40 border border-gray-300 dark:border-white/10 rounded-lg px-4 py-3 flex items-center gap-3">
+                                    <User className="text-gray-500 dark:text-gray-400" size={20} />
                                     <input
                                         type="email"
                                         placeholder="john@example.com"
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="bg-transparent w-full text-white outline-none"
+                                        className="bg-transparent w-full text-foreground outline-none"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="text-sm text-gray-400 mb-1 block">Address (Optional)</label>
-                                <div className="bg-black/40 border border-white/10 rounded-lg px-4 py-3 flex items-center gap-3">
-                                    <User className="text-gray-400" size={20} />
+                                <label className="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Address (Optional)</label>
+                                <div className="bg-gray-100 dark:bg-black/40 border border-gray-300 dark:border-white/10 rounded-lg px-4 py-3 flex items-center gap-3">
+                                    <User className="text-gray-500 dark:text-gray-400" size={20} />
                                     <textarea
                                         placeholder="Your address"
                                         value={formData.address}
                                         onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                        className="bg-transparent w-full text-white outline-none resize-none h-20"
+                                        className="bg-transparent w-full text-foreground outline-none resize-none h-20"
                                     />
                                 </div>
                             </div>
@@ -140,15 +140,15 @@ export default function Login() {
                     )}
 
                     <div>
-                        <label className="text-sm text-gray-400 mb-1 block">Password</label>
-                        <div className="bg-black/40 border border-white/10 rounded-lg px-4 py-3 flex items-center gap-3">
-                            <Lock className="text-gray-400" size={20} />
+                        <label className="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Password</label>
+                        <div className="bg-gray-100 dark:bg-black/40 border border-gray-300 dark:border-white/10 rounded-lg px-4 py-3 flex items-center gap-3">
+                            <Lock className="text-gray-500 dark:text-gray-400" size={20} />
                             <input
                                 type="password"
                                 placeholder="Enter your password"
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                className="bg-transparent w-full text-white outline-none"
+                                className="bg-transparent w-full text-foreground outline-none"
                                 required
                             />
                         </div>
@@ -176,7 +176,7 @@ export default function Login() {
                             setError('');
                             setFormData({ name: '', phone: '', password: '', email: '', address: '' });
                         }}
-                        className="text-gray-400 hover:text-primary transition-colors text-sm"
+                        className="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm"
                     >
                         {isLogin ? "Don't have an account? " : "Already have an account? "}
                         <span className="text-primary font-bold">{isLogin ? 'Sign Up' : 'Sign In'}</span>
@@ -184,7 +184,7 @@ export default function Login() {
                 </div>
 
                 <div className="mt-4 text-center">
-                    <Link to="/" className="text-gray-400 hover:text-primary transition-colors text-sm">
+                    <Link to="/" className="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors text-sm">
                         ← Back to Home
                     </Link>
                 </div>
